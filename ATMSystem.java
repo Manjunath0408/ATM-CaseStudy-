@@ -2,15 +2,17 @@ import java.util.ArrayList;
 
 public class ATMSystem {
 	static ArrayList<Account> Ac; /// database
-	static private int [] Denominations;   //[0] 100s //[1] 500s //[2] 2000s
-	ATMSystem(int [] Denominations){
+	static private int [] Denominations;
+	static double processingFee;									//[0] 100s //[1] 500s //[2] 2000s
+	ATMSystem(int [] Denominations,double processingFee){
 		Ac = new ArrayList<Account>();
 		ATMSystem.Denominations = Denominations;
+		ATMSystem.processingFee = processingFee;
 	}
 	static private Account getAc(int accountNumber) { // this is called only when there is 
 		Account A = null; 
 		for(Account a:Ac) {
-			if(a.getAccountNumber() == accountNumber) {
+			if(a.checkAccountNumber(accountNumber)) {
 				A = a;
 				break;
 			}
@@ -19,7 +21,7 @@ public class ATMSystem {
 	}
 	static boolean isValid(int accountNumber,int password) {
 		for(Account a: Ac) {
-			if(a.getAccountNumber() == accountNumber && a.getPassWord() == password) {
+			if(a.checkAccountNumber(accountNumber) && a.checkPassWord(ATMSystem.encrypt(password))) {
 				return true;
 			}
 		}
@@ -27,7 +29,7 @@ public class ATMSystem {
 	}
 	static boolean isValid(int accountNumber) {
 		for(Account a: Ac) {
-			if(a.getAccountNumber() == accountNumber) {
+			if(a.checkAccountNumber(accountNumber)) {
 				return true;
 			}
 		}
@@ -36,12 +38,24 @@ public class ATMSystem {
 	static double getBalance(int accountNumber){
 		double balance = 0.0;
 		for(Account a: Ac) {
-			if(a.getAccountNumber()== accountNumber){
+			if(a.checkAccountNumber(accountNumber)){
 				balance = a.getBalance();
 				break;
 			}
 		}
 		return balance;
+	}
+	static String getBankName(int accountNumber) {
+		return getAc(accountNumber).getBankName();
+	}
+	static String getName(int accountNumber,int passWord) {
+		return getAc(accountNumber).getName(ATMSystem.encrypt(passWord));
+	}
+	static void addTransactions(int accountNumber,String T,int passWord) {
+		getAc(accountNumber).addTransaction(T,ATMSystem.encrypt(passWord));
+	}
+	static void getMiniStatement(int accountNumber) {
+		getAc(accountNumber).getMiniStatement();
 	}
 	static void AddFunds(int accountNumber,double amount,int [] denominations) {
 		getAc(accountNumber).AddFunds(amount);
@@ -98,4 +112,42 @@ public class ATMSystem {
 			ATMSystem.Denominations[i] += denominations[i];
 		}
 	}
+	static double getProcessingFee() {
+		return ATMSystem.processingFee;
+	}
+    static int encrypt(int passWord) { // if password is 123 encryption:32111 
+    	int encryption = 0;
+    	while(passWord>0) {
+    		encryption*=10;
+    		encryption+=passWord%10;
+    		passWord/=10;
+    	}
+    	for(int i=0;i<2;i++) {
+    		passWord*=10;
+    		passWord+=1;
+    	}
+		return encryption;
+	}
+    static int decrypt(int passWord) {
+    	int decryption = 0;
+    	passWord /=100;
+    	while(passWord>0) {
+    		decryption *=10;
+    		decryption += passWord%10;
+    		passWord/=10;
+    	}
+    	return decryption;
+    }
+    static int getOTP() {
+    	return (int)(Math.random()*(100000-10000)+10000); //[1e4,1e5)
+    }
+    static int getNewPassWord() {
+    	return (int)(Math.random()*(100000000-10000000)+10000000);//[1e7,1e8)
+    }
+    static boolean canChangePassword(int accountNumber) {
+    	return (ATMSystem.getAc(accountNumber).getRemainingCount()>0);
+    }
+    static void changePassWord(int accountNumber,int oldPassWord) {
+    	ATMSystem.getAc(accountNumber).changePassWord(ATMSystem.encrypt(oldPassWord));
+    }
 }

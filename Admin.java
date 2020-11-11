@@ -11,20 +11,23 @@ public class Admin {
 		int login = ATM.sc.nextInt();
 		System.out.println("Enter the password: ");
 		int pass = ATM.sc.nextInt();
-		if(login == loginID && pass == passWord) {
+		if(ATMSystem.encrypt(login) == loginID && ATMSystem.encrypt(pass) == passWord) {
 			System.out.println("1. Get Session Details");
 			System.out.println("2. Cash and Dominations");
 			int op = ATM.sc.nextInt();
 			if(op==1) {
 				if(!ATM.Sessions.isEmpty()) {
+					int cnt=1;
 					for(Session s:ATM.Sessions) {
+						System.out.print(cnt+". ");
 						s.getDetails();
+						cnt++;
 					}
 				}
 				else {
 					System.out.println("No Transactions");
 				}
-				System.out.println("-----------------------");
+				
 			}
 			else {
 				ATMSystem.getCashAndDenominations();
